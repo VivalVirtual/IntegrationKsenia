@@ -2,14 +2,17 @@
     "domain": "ksenia_lares",
     "name": "Ksenia Lares Alarm 4.0",
     "codeowners": [
-      "@Vival"
+      "@Vivaldi"
     ],
     "config_flow": true,
     "dependencies": [],
     "homekit": {},
+    "documentation": "https://github.com/johnnybegood/ha-ksenia-lares",
     "iot_class": "local_polling",
     "ssdp": [],
     "version": "1.0.0",
     "zeroconf": [],
     "translations": ["it.json"]
+    "issue_tracker": "https://github.com/VivalVirtual/IntegrationKsenia.git",
+      "documentation": "https://github.com/VivalVirtual/IntegrationKsenia.git",
   }

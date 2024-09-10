@@ -1,0 +1,18 @@
+{
+    "config": {
+
+        "step": {
+            "user": {
+                "title": "Configure Your Device",
+                "data": {
+                   "code": "000001",
+                    "ip": "192.168.1.160",
+                    "port": "443",
+                    "macAddr": "A4580F94070F",
+                    "pinSuper": "E7829A"
+                }
+            }
+        }
+    }
+
+}

@@ -1,0 +1,17 @@
+
+{
+    "config": {
+      "step": {
+        "user": {
+            "title": "Add Group",
+            "description": "Some description",
+            "data": {
+                "code": "[%key:common::config_flow::data::code%]",
+                  "ip": "[%key:common::config_flow::data::ip%]",
+                  "port": "[%key:common::config_flow::data::port%]",
+                  "macAddr": "[%key:common::config_flow::data::macAddr%]",
+                  "pinSuper": "[%key:common::config_flow::data::pinSuper%]"
+            }
+        }
+  }}
+}

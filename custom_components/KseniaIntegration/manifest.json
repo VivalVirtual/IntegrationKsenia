@@ -12,7 +12,7 @@
     "ssdp": [],
     "version": "1.0.0",
     "zeroconf": [],
-    "translations": ["it.json"]
+    "translations": ["it.json"],
     "issue_tracker": "https://github.com/VivalVirtual/IntegrationKsenia.git",
       "documentation": "https://github.com/VivalVirtual/IntegrationKsenia.git",
   }

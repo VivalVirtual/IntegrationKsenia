@@ -39,6 +39,7 @@ class SimpleAlarmWebSocketClient:
                 _LOGGER.error(f"Connection lost: {e}")
                 self._connected = False
                 await self.connect()
+                await self.websocketSuper.connectSuperUser()
 
     async def receive(self):
         """Receive a message from the WebSocket server."""
@@ -52,6 +53,7 @@ class SimpleAlarmWebSocketClient:
                     _LOGGER.error(f"Connection lost: {e}")
                     self._connected = False
                     await self.connect()
+                    await self.websocketSuper.connectSuperUser()
 
     async def connect(self):
         """Connect to the WebSocket server."""
@@ -203,3 +205,7 @@ class SimpleAlarmWebSocketClient:
             await self._websocket.close()
             _LOGGER.info("Closed WebSocket connection")
             self._connected = False
+
+
+def connectWebsocketSuperUser(self, websocketSuper: any):
+    self.websocketSuper = websocketSuper

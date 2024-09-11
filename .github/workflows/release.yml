@@ -13,14 +13,14 @@ jobs:
 
       - name: ZIP Component Dir
         run: |
-          cd ${{ github.workspace }}/custom_components/xiaomi_miot
-          zip -r xiaomi_miot.zip ./
+          cd ${{ github.workspace }}/custom_components/KseniaIntegration
+          zip -r KseniaIntegration.zip ./
 
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/custom_components/xiaomi_miot/xiaomi_miot.zip
-          asset_name: xiaomi_miot.zip
+          file: ${{ github.workspace }}/custom_components/xiaomi_miot/KseniaIntegration.zip
+          asset_name: KseniaIntegration.zip
           tag: ${{ github.ref }}
           overwrite: true

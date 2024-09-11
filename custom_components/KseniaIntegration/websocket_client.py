@@ -71,9 +71,10 @@ class SimpleAlarmWebSocketClient:
 
         # Fa il login User
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "' + self._pin + '"}, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + str(self._mac) +
+                                   '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "' + str(self._pin) + '"}, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
             response = await self.receive()
+            print("--------" + response)
             data = json.loads(response)
             self._id = data['PAYLOAD']['ID_LOGIN']
             self._reciver = data['RECEIVER']
@@ -119,61 +120,61 @@ class SimpleAlarmWebSocketClient:
     async def lettura_zone(self):
         try:
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"ZONES", "PAYLOAD":{ "ID_LOGIN": "' + self._id + '" ,  "TYPES":["ZONES"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"ZONES", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["ZONES"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
             response = await self.receive()
             return json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile leggere le zone: {e}")
 
     async def lettura_scenario(self):
         try:
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"SCENARIOS", "PAYLOAD":{ "ID_LOGIN": "' + self._id + '" ,  "TYPES":["SCENARIOS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"SCENARIOS", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["SCENARIOS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
             response = await self.receive()
             return json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile leggere gli scenari: {e}")
 
     async def lettura_partizioni(self):
         try:
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "' + self._id + '" ,  "TYPES":["PARTITIONS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["PARTITIONS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
             response = await self.receive()
             return json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile leggere le partizioni: {e}")
 
     async def stato_zone(self):
         try:
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_ZONES", "PAYLOAD":{ "ID_LOGIN": "' + self._id + '" ,  "TYPES":["STATUS_ZONES"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_ZONES", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["STATUS_ZONES"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
             response = await self.receive()
             return json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile leggere stato zone : {e}")
 
     async def stato_partizioni(self):
         try:
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "' + self._id + '" ,  "TYPES":["STATUS_PARTITIONS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["STATUS_PARTITIONS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
             response = await self.receive()
             return json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile leggere stato partizioni: {e}")
 
     async def bypass_zone(self, bypass: str, zoneId: str):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_BYP_ZONE","PAYLOAD":{"ID_LOGIN":"' + self._id + '","PIN":"' + self._pin + '","ZONE":{"ID":"' + zoneId + '" , "BYP":"' + bypass + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
+            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_BYP_ZONE","PAYLOAD":{"ID_LOGIN":"' + str(self._id) + '","PIN":"' + self._pin + '","ZONE":{"ID":"' + zoneId + '" , "BYP":"' + bypass + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
             response = await self.receive()
             return "ci sono"  # json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile bypass zone : {e}")
 
     async def arm_partition(self, arm: str, partId: str, code):
         try:
@@ -185,7 +186,7 @@ class SimpleAlarmWebSocketClient:
             return "ci sono"  # json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile armare partizioni: {e}")
 
     async def arm_scene(self, scenenId: str):
         try:
@@ -194,7 +195,7 @@ class SimpleAlarmWebSocketClient:
             return json.loads(response)
 
         except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            _LOGGER.error(f"Impossibile eseguire scena: {e}")
 
     async def close(self):
         """Close the WebSocket connection."""

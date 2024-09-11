@@ -8,8 +8,8 @@
                     "code": "Pin Utente",
                     "ip": "Indirizzo Ip dispositivo",
                     "port": "Porta",
-                    "mac_addr": "Indirizzo MAC",
-                    "pin_super": "Pin super Utente"
+                    "macAddr": "Indirizzo MAC",
+                    "pinSuper": "Pin super Utente"
                 }
             }
         }

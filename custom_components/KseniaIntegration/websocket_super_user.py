@@ -1,4 +1,3 @@
-
 from .coordinator import AlarmDataCoordinator
 from .const import *
 from asyncio import Queue
@@ -40,7 +39,7 @@ class WebsocketSuperUser:
             except (websockets.ConnectionClosedError, websockets.ConnectionClosedOK, OSError) as e:
                 _LOGGER.error(f"Connection lost: {e}")
                 self._connected = False
-                await self.connect()
+                await self.connectSuperUser()
 
     async def receive(self):
         """Receive a message from the WebSocket server."""
@@ -53,10 +52,10 @@ class WebsocketSuperUser:
                 except (websockets.ConnectionClosedError, websockets.ConnectionClosedOK, OSError) as e:
                     _LOGGER.error(f"Connection lost: {e}")
                     self._connected = False
-                    await self.connect()
+                    await self.connectSuperUser()
         return None
 
-    async def connect(self):
+    async def connectSuperUser(self):
         """Connect to the WebSocket server."""
         try:
             sslcontext = ssl.create_default_context()
@@ -100,3 +99,5 @@ class WebsocketSuperUser:
         """Process the received WebSocket message."""
         # Logica per elaborare il messaggio
         _LOGGER.info(f"Processing message: {message}")
+
+

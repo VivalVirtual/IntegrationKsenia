@@ -15,8 +15,8 @@
                     "code": "Access Code",
                     "ip": "Device IP Address",
                     "port": "Port Number",
-                    "mac_addr": "MAC Address",
-                    "pin_super": "Super User PIN"
+                    "macAddr": "MAC Address",
+                    "pinSuper": "Super User PIN"
                 }
             }
         }

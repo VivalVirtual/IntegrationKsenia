@@ -6,6 +6,8 @@ from homeassistant.components.alarm_control_panel import (
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
+from homeassistant.exceptions import ConfigValidationError, HomeAssistantError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.const import STATE_ALARM_ARMED_AWAY, STATE_ALARM_DISARMED, STATE_ALARM_TRIGGERED, STATE_ALARM_ARMED_CUSTOM_BYPASS, STATE_ALARM_ARMED_HOME
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, DATA_COORDINATOR, DATA_PARTITIONS, PARTITION_STATUS_ARMED, DATA_SCENARIOS
@@ -85,13 +87,18 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
             if ('P' in self._idx):
                 await self._coordinator.client.arm_partition('D', self._idx.split('P')[
                     1], code)
+        else:
+            self.check_code()
 
     async def async_alarm_arm_away(self, code: str | None = None):
         """Arma il sistema di allarme in modalità 'away'."""
+
         if (code == self._coordinator.client._pin):
             if ('P' in self._idx):
                 await self._coordinator.client.arm_partition('A', self._idx.split('P')[
                     1], code)
+        else:
+            self.check_code()
 
     async def async_alarm_arm_home(self, code: str | None = None):
         if (code == self._coordinator.client._pin):
@@ -100,6 +107,8 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
                     1], code)
             elif ('S' in self._idx):
                 await self.coordinator.client.arm_scene(self._idx.split('S')[1])
+        else:
+            self.check_code()
 
     async def alarm_trigger(self, code=None):
         """Attiva l'allarme."""
@@ -112,3 +121,9 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
     async def async_alarm_arm_custom_bypass(self, code=None) -> None:
         """Send arm custom bypass command."""
         pass
+
+    def check_code(self):
+        """Check if arm code is required, raise if no code is given."""
+
+        raise HomeAssistantError(
+            "   !!!     CODICE NON VALIDO     !!!")

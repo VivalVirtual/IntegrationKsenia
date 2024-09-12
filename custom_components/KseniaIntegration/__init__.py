@@ -23,10 +23,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     coordinator = AlarmDataCoordinator(hass, websocket_client)
     websocket_super_user = WebsocketSuperUser(
-        websocket_uri, entry.data.get("macAddr"), entry.data.get('pinSuper'), coordinator)
+        websocket_uri, entry.data.get("macAddr"), entry.data.get('pinSuper'), coordinator, websocket_client)
 
     await websocket_super_user.connectSuperUser()
-    websocket_client.connectWebsocketSuperUser(websocket_super_user)
+
     # Crea entità, servizi, ecc.
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(

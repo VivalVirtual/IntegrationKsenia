@@ -39,7 +39,6 @@ class SimpleAlarmWebSocketClient:
                 _LOGGER.error(f"Connection lost: {e}")
                 self._connected = False
                 await self.connect()
-                await self.websocketSuper.connectSuperUser()
 
     async def receive(self):
         """Receive a message from the WebSocket server."""
@@ -47,41 +46,43 @@ class SimpleAlarmWebSocketClient:
             async with self._recv_lock:  # Assicura che solo una coroutine alla volta possa chiamare recv()
                 try:
                     message = await self._websocket.recv()
-                    # _LOGGER.info(f" \n  Received message: {message} \n ")
+                    _LOGGER.info(f" \n  Received message: {message} \n ")
                     return message
                 except (websockets.ConnectionClosedError, websockets.ConnectionClosedOK, OSError) as e:
                     _LOGGER.error(f"Connection lost: {e}")
                     self._connected = False
                     await self.connect()
-                    await self.websocketSuper.connectSuperUser()
 
     async def connect(self):
         """Connect to the WebSocket server."""
-        try:
-            sslcontext = ssl.create_default_context()
-            sslcontext.options |= ssl.OP_LEGACY_SERVER_CONNECT
-            sslcontext.check_hostname = False
-            sslcontext.verify_mode = ssl.CERT_NONE
-            self._websocket = await websockets.connect(
-                self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10)
-            self._connected = True
-            _LOGGER.info(f"Connected to WebSocket server at {self._uri}")
+        while not self._connected:
+            try:
+                sslcontext = ssl.create_default_context()
+                sslcontext.options |= ssl.OP_LEGACY_SERVER_CONNECT
+                sslcontext.check_hostname = False
+                sslcontext.verify_mode = ssl.CERT_NONE
+                self._websocket = await websockets.connect(
+                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10)
+                self._connected = True
+                _LOGGER.info(f"Connected to WebSocket server at {self._uri}")
 
-        except Exception as e:
-            _LOGGER.error(f"Failed to connect to WebSocket server: {e}")
-            self._connected = False
-
-        # Fa il login User
-        try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + str(self._mac) +
-                                   '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "' + str(self._pin) + '"}, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
-            response = await self.receive()
-            print("--------" + response)
-            data = json.loads(response)
-            self._id = data['PAYLOAD']['ID_LOGIN']
-            self._reciver = data['RECEIVER']
-        except Exception as e:
-            _LOGGER.error(f"Impossibile fare il login: {e}")
+            except Exception as e:
+                _LOGGER.error(f"Failed to connect to WebSocket server: {e}")
+                self._connected = False
+                time.sleep(30)
+        response = None
+        while response is None:
+            # Fa il login User
+            try:
+                await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + str(self._mac) +
+                                       '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "' + str(self._pin) + '"}, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                response = await asyncio.wait_for(self.receive(), timeout=60)
+                print("--------" + response)
+                data = json.loads(response)
+                self._id = data['PAYLOAD']['ID_LOGIN']
+                self._reciver = data['RECEIVER']
+            except Exception as e:
+                _LOGGER.error(f"Impossibile fare il login: {e}")
 
         # Lettura zone
         try:
@@ -205,7 +206,3 @@ class SimpleAlarmWebSocketClient:
             await self._websocket.close()
             _LOGGER.info("Closed WebSocket connection")
             self._connected = False
-
-
-def connectWebsocketSuperUser(self, websocketSuper: any):
-    self.websocketSuper = websocketSuper

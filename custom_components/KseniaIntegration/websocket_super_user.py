@@ -1,3 +1,4 @@
+import random
 from .coordinator import AlarmDataCoordinator
 from .const import *
 from asyncio import Queue
@@ -62,7 +63,9 @@ class WebsocketSuperUser:
 
     async def connectSuperUser(self):
         """Connect to the WebSocket server."""
+        self._connected = False
         response = None
+        backoff = 5
         while not self._connected:
             try:
                 sslcontext = ssl.create_default_context()
@@ -70,16 +73,27 @@ class WebsocketSuperUser:
                 sslcontext.check_hostname = False
                 sslcontext.verify_mode = ssl.CERT_NONE
                 self._websocket = await websockets.connect(
-                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10)
+                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10, timeout=30)
                 self._connected = True
                 _LOGGER.info(
                     f"Connected super user to WebSocket server at {self._uri}")
-                print("-------- connessione super user ripresa ")
+                backoff = 5
+            except asyncio.TimeoutError:
+                _LOGGER.error("Connection timed out")
+                sleep_time = backoff + random.uniform(0, 1)
+                await asyncio.sleep(sleep_time)
+                backoff = min(backoff * 2, 300)  # Cap backoff to 5 minutes
+
+            except websockets.InvalidStatusCode as e:
+                _LOGGER.error(f"Server rejected connection with status code {
+                              e.status_code}")
             except Exception as e:
                 _LOGGER.error(f"Failed to connect to WebSocket server: {e}")
-                print("-------- connessione persa ")
                 self._connected = False
-                time.sleep(30)
+                sleep_time = backoff + random.uniform(0, 1)
+                await asyncio.sleep(sleep_time)
+                backoff = min(backoff * 2, 300)  # Cap backoff to 5 minutes
+
         response = None
         while response == None:
             # Fa il login User
@@ -105,15 +119,15 @@ class WebsocketSuperUser:
         message = ""
         """Listen for incoming messages in a loop."""
         while self._running and message is not None:
-            print("running -- " + str(self._running))
             message = await self.receive()
-            print("stop" + str(self._running))
             if message:
                 await self.coordinator._async_update_data_realtime(message, False)
 
-        print("reconecting")
+        if (self.userWebsocket._connected == True):
+            {
+                await self.userWebsocket.connect()
+            }
         await self.connectSuperUser()
-        await self.userWebsocket.connect()
 
     def process_message(self, message):
         """Process the received WebSocket message."""

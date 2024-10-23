@@ -52,6 +52,7 @@ class AlarmDataCoordinator(DataUpdateCoordinator):
                                  "status": status, "allarme": allarme}
             return TMP_ZONE
         else:
+
             for value, value_stato in zip(zone['PAYLOAD']['ZONES'], stato_zone['PAYLOAD'][self.client._reciver]['STATUS_ZONES']):
                 description = value["DES"]
                 if value_stato["BYP"] == "NO":
@@ -130,13 +131,25 @@ class AlarmDataCoordinator(DataUpdateCoordinator):
 
         else:
             if 'STATUS_PARTITIONS' in realTimeDati:
+                try:
+                    value = self.client._partizioni['PAYLOAD']['PARTITIONS']
+                except KeyError:
+                    self.client.lettura_zone
                 self.format_partizioni(
                     self.client._partizioni, json.loads(realTimeDati), False)
                 self.data = {DATA_PARTITIONS: self.TMP_PARTIZIONI,
                              DATA_ZONES: self.TMP_ZONE, DATA_SCENARIOS: self.TMP_SCENARIOS}
             if 'STATUS_ZONES' in realTimeDati:
+
+                try:
+                    value = self.client._zone['PAYLOAD']['ZONES']
+
+                except KeyError:
+                    self.client.lettura_zone
+
                 self.format_zone(
                     self.client._zone, json.loads(realTimeDati), False)
+
                 self.data = {DATA_PARTITIONS: self.TMP_PARTIZIONI,
                              DATA_ZONES: self.TMP_ZONE, DATA_SCENARIOS: self.TMP_SCENARIOS}
         self.async_set_updated_data(await self._async_update_data())

@@ -11,7 +11,6 @@ from .const import DOMAIN, DATA_COORDINATOR
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Simple Alarm from a config entry."""
     hass.data.setdefault(DOMAIN, {})
-    print("ci sono")
     websocket_uri = 'wss://' + \
         entry.data.get("ip") + ':' + entry.data.get("port") + '/KseniaWsock'
 

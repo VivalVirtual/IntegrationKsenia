@@ -62,7 +62,6 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
         if ('P' in self._idx):
             self._state = self.coordinator.data[DATA_PARTITIONS][self._idx.split('P')[
                 1]]["status"]
-            print("state" + self._state)
         else:
             self._state = STATE_ALARM_DISARMED
 

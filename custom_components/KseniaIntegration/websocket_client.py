@@ -1,3 +1,4 @@
+import random
 from .const import *
 from asyncio import Queue
 import time
@@ -55,21 +56,40 @@ class SimpleAlarmWebSocketClient:
 
     async def connect(self):
         """Connect to the WebSocket server."""
+        backoff = 5  # Start with 5 seconds
+        self._connected = False
         while not self._connected:
             try:
+
                 sslcontext = ssl.create_default_context()
                 sslcontext.options |= ssl.OP_LEGACY_SERVER_CONNECT
                 sslcontext.check_hostname = False
                 sslcontext.verify_mode = ssl.CERT_NONE
                 self._websocket = await websockets.connect(
-                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10)
+                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],
+                    ping_interval=30, ping_timeout=30, timeout=60
+                )
+
                 self._connected = True
                 _LOGGER.info(f"Connected to WebSocket server at {self._uri}")
+                backoff = 5  # Reset backoff after successful connection
+            except asyncio.TimeoutError:
+                _LOGGER.error("Connection timed out")
+                sleep_time = backoff + random.uniform(0, 1)
+                await asyncio.sleep(sleep_time)
 
+                backoff = min(backoff * 2, 300)  # Cap backoff to 5 minutes
+
+            except websockets.InvalidStatusCode as e:
+                _LOGGER.error(f"Server rejected connection with status code {
+                              e.status_code}")
             except Exception as e:
                 _LOGGER.error(f"Failed to connect to WebSocket server: {e}")
                 self._connected = False
-                time.sleep(30)
+                sleep_time = backoff + random.uniform(0, 1)
+                await asyncio.sleep(sleep_time)
+                backoff = min(backoff * 2, 300)  # Cap backoff to 5 minutes
+
         response = None
         while response is None:
             # Fa il login User
@@ -77,48 +97,48 @@ class SimpleAlarmWebSocketClient:
                 await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + str(self._mac) +
                                        '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "' + str(self._pin) + '"}, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
                 response = await asyncio.wait_for(self.receive(), timeout=60)
-                print("--------" + response)
+
                 data = json.loads(response)
                 self._id = data['PAYLOAD']['ID_LOGIN']
                 self._reciver = data['RECEIVER']
             except Exception as e:
                 _LOGGER.error(f"Impossibile fare il login: {e}")
 
-        # Lettura zone
-        try:
-            data_zone = await self.lettura_zone()
-            self._zone = data_zone
-        except Exception as e:
-            _LOGGER.error(f"Impossibile trovare le zone: {e}")
+            # Lettura zone
+            try:
+                data_zone = await self.lettura_zone()
+                self._zone = data_zone
+            except Exception as e:
+                _LOGGER.error(f"Impossibile trovare le zone: {e}")
 
-        # Lettura stato zone
-        try:
-            data_zone = await self.stato_zone()
-            self._zonestato = data_zone
-        except Exception as e:
-            _LOGGER.error(f"Impossibile leggere lo stato delle zone: {e}")
+            # Lettura stato zone
+            try:
+                data_zone = await self.stato_zone()
+                self._zonestato = data_zone
+            except Exception as e:
+                _LOGGER.error(f"Impossibile leggere lo stato delle zone: {e}")
 
-        # Lettura scene
-        try:
-            data_scenarios = await self.lettura_scenario()
-            self._scenarios = data_scenarios
-        except Exception as e:
-            _LOGGER.error(f"Impossibile leggere lo stato delle scene: {e}")
+            # Lettura scene
+            try:
+                data_scenarios = await self.lettura_scenario()
+                self._scenarios = data_scenarios
+            except Exception as e:
+                _LOGGER.error(f"Impossibile leggere lo stato delle scene: {e}")
 
-        # Lettura partizioni
-        try:
+            # Lettura partizioni
+            try:
 
-            data_partizioni = await self.lettura_partizioni()
-            self._partizioni = data_partizioni
-        except Exception as e:
-            _LOGGER.error(f"Impossibile trovare le zone: {e}")
+                data_partizioni = await self.lettura_partizioni()
+                self._partizioni = data_partizioni
+            except Exception as e:
+                _LOGGER.error(f"Impossibile trovare le zone: {e}")
 
-        # Lettura stato partizioni
-        try:
-            stato_partizione = await self.stato_partizioni()
-            self._partizionistato = stato_partizione
-        except Exception as e:
-            _LOGGER.error(f"Impossibile leggere lo stato delle zone: {e}")
+            # Lettura stato partizioni
+            try:
+                stato_partizione = await self.stato_partizioni()
+                self._partizionistato = stato_partizione
+            except Exception as e:
+                _LOGGER.error(f"Impossibile leggere lo stato delle zone: {e}")
 
     async def lettura_zone(self):
         try:
@@ -174,19 +194,16 @@ class SimpleAlarmWebSocketClient:
         try:
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_BYP_ZONE","PAYLOAD":{"ID_LOGIN":"' + str(self._id) + '","PIN":"' + self._pin + '","ZONE":{"ID":"' + zoneId + '" , "BYP":"' + bypass + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
             response = await self.receive()
-            return "ci sono"  # json.loads(response)
+            return json.loads(response)
 
         except Exception as e:
             _LOGGER.error(f"Impossibile bypass zone : {e}")
 
     async def arm_partition(self, arm: str, partId: str, code):
         try:
-            print(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_ARM_PARTITION","PAYLOAD":{"ID_LOGIN":"' +
-                  self._id + '","PIN":"' + code + '","PARTITION":{"ID":"' + partId + '" , "MOD":"' + arm + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
             await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_ARM_PARTITION","PAYLOAD":{"ID_LOGIN":"' + self._id + '","PIN":"' + self._pin + '","PARTITION":{"ID":"' + partId + '" , "MOD":"' + arm + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
             response = await self.receive()
-            print(response)
-            return "ci sono"  # json.loads(response)
+            return json.loads(response)
 
         except Exception as e:
             _LOGGER.error(f"Impossibile armare partizioni: {e}")

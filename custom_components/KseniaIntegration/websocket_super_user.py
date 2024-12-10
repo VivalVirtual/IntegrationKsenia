@@ -73,7 +73,7 @@ class WebsocketSuperUser:
                 sslcontext.check_hostname = False
                 sslcontext.verify_mode = ssl.CERT_NONE
                 self._websocket = await websockets.connect(
-                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10, timeout=30)
+                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],  ping_interval=20, ping_timeout=10)
                 self._connected = True
                 _LOGGER.info(
                     f"Connected super user to WebSocket server at {self._uri}")

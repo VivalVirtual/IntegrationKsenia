@@ -67,7 +67,7 @@ class SimpleAlarmWebSocketClient:
                 sslcontext.verify_mode = ssl.CERT_NONE
                 self._websocket = await websockets.connect(
                     self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],
-                    ping_interval=30, ping_timeout=30, timeout=60
+                    ping_interval=30, ping_timeout=30
                 )
 
                 self._connected = True

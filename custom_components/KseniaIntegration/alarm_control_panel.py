@@ -8,9 +8,21 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.exceptions import ConfigValidationError, HomeAssistantError
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.const import STATE_ALARM_ARMED_AWAY, STATE_ALARM_DISARMED, STATE_ALARM_TRIGGERED, STATE_ALARM_ARMED_CUSTOM_BYPASS, STATE_ALARM_ARMED_HOME
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from .const import DOMAIN, DATA_COORDINATOR, DATA_PARTITIONS, PARTITION_STATUS_ARMED, DATA_SCENARIOS
+from .const import (
+    DOMAIN,
+    DATA_COORDINATOR,
+    DATA_PARTITIONS,
+    PARTITION_STATUS_ARMED,
+    DATA_SCENARIOS,
+)
+from homeassistant.components.alarm_control_panel import (
+    AlarmControlPanelEntity,
+    AlarmControlPanelEntityFeature,
+    CodeFormat,
+    AlarmControlPanelState,
+)
+from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 
 
 async def async_setup_entry(hass, config, async_add_entities, discovery_info=None):
@@ -18,14 +30,12 @@ async def async_setup_entry(hass, config, async_add_entities, discovery_info=Non
     coordinator = hass.data[DOMAIN][config.entry_id][DATA_COORDINATOR]
     await coordinator.async_refresh()
     async_add_entities(
-        SimpleAlarmControlPanel(coordinator, 'P' + idx,
-                                data['description'])
+        SimpleAlarmControlPanel(coordinator, "P" + idx, data["description"])
         for idx, data in coordinator.data[DATA_PARTITIONS].items()
     )
 
     async_add_entities(
-        SimpleAlarmControlPanel(coordinator, 'S' + idx,
-                                data['description'])
+        SimpleAlarmControlPanel(coordinator, "S" + idx, data["description"])
         for idx, data in coordinator.data[DATA_SCENARIOS].items()
     )
 
@@ -33,9 +43,9 @@ async def async_setup_entry(hass, config, async_add_entities, discovery_info=Non
 class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
     """Implementazione del pannello di controllo allarme."""
 
-    def __init__(self,
-                 coordinator: CoordinatorEntity,
-                 idx: str, description: str) -> None:
+    def __init__(
+        self, coordinator: CoordinatorEntity, idx: str, description: str
+    ) -> None:
         """Inizializza il pannello di allarme."""
         super().__init__(coordinator)
         self._coordinator = coordinator
@@ -57,61 +67,63 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
         return self._description
 
     @property
-    def state(self):
+    def alarm_state(self):
         """Restituisce lo stato attuale del pannello di allarme."""
-        if ('P' in self._idx):
-            self._state = self.coordinator.data[DATA_PARTITIONS][self._idx.split('P')[
-                1]]["status"]
+        if "P" in self._idx:
+            self._state = self.coordinator.data[DATA_PARTITIONS][
+                self._idx.split("P")[1]
+            ]["status"]
         else:
-            self._state = STATE_ALARM_DISARMED
+            self._state = AlarmControlPanelState.DISARMED
 
         return self._state
 
     @property
     def supported_features(self):
-        if ('P' in self._idx):
+        if "P" in self._idx:
             return (
                 AlarmControlPanelEntityFeature.ARM_HOME
                 | AlarmControlPanelEntityFeature.ARM_AWAY
             )
-        elif ('S' in self._idx):
-            return (
-                AlarmControlPanelEntityFeature.ARM_HOME
-            )
+        elif "S" in self._idx:
+            return AlarmControlPanelEntityFeature.ARM_HOME
         """Ritorna le funzionalità supportate."""
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
-        if (code == self._coordinator.client._pin):
-            if ('P' in self._idx):
-                await self._coordinator.client.arm_partition('D', self._idx.split('P')[
-                    1], code)
+        if code == self._coordinator.client._pin:
+            if "P" in self._idx:
+                await self._coordinator.client.arm_partition(
+                    "D", self._idx.split("P")[1], code
+                )
         else:
             self.check_code()
 
     async def async_alarm_arm_away(self, code: str | None = None):
         """Arma il sistema di allarme in modalità 'away'."""
 
-        if (code == self._coordinator.client._pin):
-            if ('P' in self._idx):
-                await self._coordinator.client.arm_partition('A', self._idx.split('P')[
-                    1], code)
+        if code == self._coordinator.client._pin:
+            if "P" in self._idx:
+                await self._coordinator.client.arm_partition(
+                    "A", self._idx.split("P")[1], code
+                )
         else:
             self.check_code()
 
     async def async_alarm_arm_home(self, code: str | None = None):
-        if (code == self._coordinator.client._pin):
-            if ('P' in self._idx):
-                await self._coordinator.client.arm_partition('I', self._idx.split('P')[
-                    1], code)
-            elif ('S' in self._idx):
-                await self.coordinator.client.arm_scene(self._idx.split('S')[1])
+        if code == self._coordinator.client._pin:
+            if "P" in self._idx:
+                await self._coordinator.client.arm_partition(
+                    "I", self._idx.split("P")[1], code
+                )
+            elif "S" in self._idx:
+                await self.coordinator.client.arm_scene(self._idx.split("S")[1])
         else:
             self.check_code()
 
     async def alarm_trigger(self, code=None):
         """Attiva l'allarme."""
-        await self._coordinator.client.arm_partition('A', self._idx)
+        await self._coordinator.client.arm_partition("A", self._idx)
 
     def alarm_arm_custom_bypass(self, code=None) -> None:
         """Send arm custom bypass command."""
@@ -124,5 +136,4 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
     def check_code(self):
         """Check if arm code is required, raise if no code is given."""
 
-        raise HomeAssistantError(
-            "   !!!     CODICE NON VALIDO     !!!")
+        raise HomeAssistantError("   !!!     CODICE NON VALIDO     !!!")

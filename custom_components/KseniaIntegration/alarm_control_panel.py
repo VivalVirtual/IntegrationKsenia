@@ -8,7 +8,6 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.exceptions import ConfigValidationError, HomeAssistantError
 from homeassistant.exceptions import ServiceValidationError
-
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
@@ -92,30 +91,33 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
-        if (code == self._coordinator.client._pin):
-            if ('P' in self._idx):
-                await self._coordinator.client.arm_partition('D', self._idx.split('P')[
-                    1], code)
-
+        if code == self._coordinator.client._pin:
+            if "P" in self._idx:
+                await self._coordinator.client.arm_partition(
+                    "D", self._idx.split("P")[1], code
+                )
         else:
             self.check_code()
 
     async def async_alarm_arm_away(self, code: str | None = None):
         """Arma il sistema di allarme in modalità 'away'."""
-        if (code == self._coordinator.client._pin):
-            if ('P' in self._idx):
-                await self._coordinator.client.arm_partition('A', self._idx.split('P')[
-                    1], code)
+
+        if code == self._coordinator.client._pin:
+            if "P" in self._idx:
+                await self._coordinator.client.arm_partition(
+                    "A", self._idx.split("P")[1], code
+                )
         else:
             self.check_code()
 
     async def async_alarm_arm_home(self, code: str | None = None):
-        if (code == self._coordinator.client._pin):
-            if ('P' in self._idx):
-                await self._coordinator.client.arm_partition('I', self._idx.split('P')[
-                    1], code)
-            elif ('S' in self._idx):
-                await self.coordinator.client.arm_scene(self._idx.split('S')[1])
+        if code == self._coordinator.client._pin:
+            if "P" in self._idx:
+                await self._coordinator.client.arm_partition(
+                    "I", self._idx.split("P")[1], code
+                )
+            elif "S" in self._idx:
+                await self.coordinator.client.arm_scene(self._idx.split("S")[1])
         else:
             self.check_code()
 
@@ -133,4 +135,5 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
 
     def check_code(self):
         """Check if arm code is required, raise if no code is given."""
+
         raise HomeAssistantError("   !!!     CODICE NON VALIDO     !!!")

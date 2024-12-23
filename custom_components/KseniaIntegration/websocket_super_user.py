@@ -120,9 +120,9 @@ class WebsocketSuperUser:
         """Listen for incoming messages in a loop."""
         while self._running and message is not None:
             message = await self.receive()
+            print("stop" + str(self._running))
             if message:
                 await self.coordinator._async_update_data_realtime(message, False)
-
         if (self.userWebsocket._connected == True):
             {
                 await self.userWebsocket.connect()

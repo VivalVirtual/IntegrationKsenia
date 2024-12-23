@@ -9,6 +9,7 @@ import logging
 import ssl
 from .crc import addCRC
 import json
+
 _LOGGER = logging.getLogger(__name__)
 message_queue = Queue()
 
@@ -24,7 +25,7 @@ class SimpleAlarmWebSocketClient:
         self._mac = macAddr
         self._pin = pin
         self._id = 0
-        self._reciver = ''
+        self._reciver = ""
         self._stato_allarme = STATE_ALARM_DISARMED
         self._recv_lock = asyncio.Lock()
 
@@ -36,7 +37,11 @@ class SimpleAlarmWebSocketClient:
 
                 _LOGGER.info(f" \n Sent message: {message}  \n ")
                 return message
-            except (websockets.ConnectionClosedError, websockets.ConnectionClosedOK, OSError) as e:
+            except (
+                websockets.ConnectionClosedError,
+                websockets.ConnectionClosedOK,
+                OSError,
+            ) as e:
                 _LOGGER.error(f"Connection lost: {e}")
                 self._connected = False
                 await self.connect()
@@ -44,12 +49,18 @@ class SimpleAlarmWebSocketClient:
     async def receive(self):
         """Receive a message from the WebSocket server."""
         if self._connected and self._websocket:
-            async with self._recv_lock:  # Assicura che solo una coroutine alla volta possa chiamare recv()
+            async with (
+                self._recv_lock
+            ):  # Assicura che solo una coroutine alla volta possa chiamare recv()
                 try:
                     message = await self._websocket.recv()
                     _LOGGER.info(f" \n  Received message: {message} \n ")
                     return message
-                except (websockets.ConnectionClosedError, websockets.ConnectionClosedOK, OSError) as e:
+                except (
+                    websockets.ConnectionClosedError,
+                    websockets.ConnectionClosedOK,
+                    OSError,
+                ) as e:
                     _LOGGER.error(f"Connection lost: {e}")
                     self._connected = False
                     await self.connect()
@@ -60,14 +71,16 @@ class SimpleAlarmWebSocketClient:
         self._connected = False
         while not self._connected:
             try:
-
                 sslcontext = ssl.create_default_context()
                 sslcontext.options |= ssl.OP_LEGACY_SERVER_CONNECT
                 sslcontext.check_hostname = False
                 sslcontext.verify_mode = ssl.CERT_NONE
                 self._websocket = await websockets.connect(
-                    self._uri, ssl=sslcontext, subprotocols=["KS_WSOCK"],
-                    ping_interval=30, ping_timeout=30
+                    self._uri,
+                    ssl=sslcontext,
+                    subprotocols=["KS_WSOCK"],
+                    ping_interval=30,
+                    ping_timeout=30,
                 )
 
                 self._connected = True
@@ -81,8 +94,10 @@ class SimpleAlarmWebSocketClient:
                 backoff = min(backoff * 2, 300)  # Cap backoff to 5 minutes
 
             except websockets.InvalidStatusCode as e:
-                _LOGGER.error(f"Server rejected connection with status code {
-                              e.status_code}")
+                _LOGGER.error(
+                    f"Server rejected connection with status code {
+                              e.status_code}"
+                )
             except Exception as e:
                 _LOGGER.error(f"Failed to connect to WebSocket server: {e}")
                 self._connected = False
@@ -94,13 +109,22 @@ class SimpleAlarmWebSocketClient:
         while response is None:
             # Fa il login User
             try:
-                await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + str(self._mac) +
-                                       '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "' + str(self._pin) + '"}, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+                await self.send(
+                    addCRC(
+                        '{"SENDER":"012345678901", "RECEIVER":"'
+                        + str(self._mac)
+                        + '", "CMD":"LOGIN", "ID": "65535", "PAYLOAD_TYPE":"USER", "PAYLOAD":{ "PIN": "'
+                        + str(self._pin)
+                        + '"}, "TIMESTAMP":"'
+                        + str(int(time.time()))
+                        + '", "CRC_16":"0x0000"}'
+                    )
+                )
                 response = await asyncio.wait_for(self.receive(), timeout=60)
 
                 data = json.loads(response)
-                self._id = data['PAYLOAD']['ID_LOGIN']
-                self._reciver = data['RECEIVER']
+                self._id = data["PAYLOAD"]["ID_LOGIN"]
+                self._reciver = data["RECEIVER"]
             except Exception as e:
                 _LOGGER.error(f"Impossibile fare il login: {e}")
 
@@ -127,7 +151,6 @@ class SimpleAlarmWebSocketClient:
 
             # Lettura partizioni
             try:
-
                 data_partizioni = await self.lettura_partizioni()
                 self._partizioni = data_partizioni
             except Exception as e:
@@ -142,8 +165,17 @@ class SimpleAlarmWebSocketClient:
 
     async def lettura_zone(self):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"ZONES", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["ZONES"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"ZONES", "PAYLOAD":{ "ID_LOGIN": "'
+                    + str(self._id)
+                    + '" ,  "TYPES":["ZONES"] }, "TIMESTAMP":"'
+                    + str(int(time.time()))
+                    + '", "CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -152,8 +184,17 @@ class SimpleAlarmWebSocketClient:
 
     async def lettura_scenario(self):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"SCENARIOS", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["SCENARIOS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"SCENARIOS", "PAYLOAD":{ "ID_LOGIN": "'
+                    + str(self._id)
+                    + '" ,  "TYPES":["SCENARIOS"] }, "TIMESTAMP":"'
+                    + str(int(time.time()))
+                    + '", "CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -162,8 +203,17 @@ class SimpleAlarmWebSocketClient:
 
     async def lettura_partizioni(self):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["PARTITIONS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "'
+                    + str(self._id)
+                    + '" ,  "TYPES":["PARTITIONS"] }, "TIMESTAMP":"'
+                    + str(int(time.time()))
+                    + '", "CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -172,8 +222,17 @@ class SimpleAlarmWebSocketClient:
 
     async def stato_zone(self):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_ZONES", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["STATUS_ZONES"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_ZONES", "PAYLOAD":{ "ID_LOGIN": "'
+                    + str(self._id)
+                    + '" ,  "TYPES":["STATUS_ZONES"] }, "TIMESTAMP":"'
+                    + str(int(time.time()))
+                    + '", "CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -182,8 +241,17 @@ class SimpleAlarmWebSocketClient:
 
     async def stato_partizioni(self):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac +
-                                   '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "' + str(self._id) + '" ,  "TYPES":["STATUS_PARTITIONS"] }, "TIMESTAMP":"' + str(int(time.time())) + '", "CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"READ", "ID": "65535", "PAYLOAD_TYPE":"STATUS_PARTITIONS", "PAYLOAD":{ "ID_LOGIN": "'
+                    + str(self._id)
+                    + '" ,  "TYPES":["STATUS_PARTITIONS"] }, "TIMESTAMP":"'
+                    + str(int(time.time()))
+                    + '", "CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -192,7 +260,23 @@ class SimpleAlarmWebSocketClient:
 
     async def bypass_zone(self, bypass: str, zoneId: str):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_BYP_ZONE","PAYLOAD":{"ID_LOGIN":"' + str(self._id) + '","PIN":"' + self._pin + '","ZONE":{"ID":"' + zoneId + '" , "BYP":"' + bypass + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_BYP_ZONE","PAYLOAD":{"ID_LOGIN":"'
+                    + str(self._id)
+                    + '","PIN":"'
+                    + self._pin
+                    + '","ZONE":{"ID":"'
+                    + zoneId
+                    + '" , "BYP":"'
+                    + bypass
+                    + '" }  },"TIMESTAMP" : "'
+                    + str(int(time.time()))
+                    + '","CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -201,7 +285,23 @@ class SimpleAlarmWebSocketClient:
 
     async def arm_partition(self, arm: str, partId: str, code):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_ARM_PARTITION","PAYLOAD":{"ID_LOGIN":"' + self._id + '","PIN":"' + self._pin + '","PARTITION":{"ID":"' + partId + '" , "MOD":"' + arm + '" }  },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":"0x0000"}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_ARM_PARTITION","PAYLOAD":{"ID_LOGIN":"'
+                    + self._id
+                    + '","PIN":"'
+                    + self._pin
+                    + '","PARTITION":{"ID":"'
+                    + partId
+                    + '" , "MOD":"'
+                    + arm
+                    + '" }  },"TIMESTAMP" : "'
+                    + str(int(time.time()))
+                    + '","CRC_16":"0x0000"}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 
@@ -210,7 +310,21 @@ class SimpleAlarmWebSocketClient:
 
     async def arm_scene(self, scenenId: str):
         try:
-            await self.send(addCRC('{"SENDER":"012345678901", "RECEIVER":"' + self._mac + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_EXE_SCENARIO","PAYLOAD":{"ID_LOGIN":"' + self._id + '","PIN":"' + self._pin + '","SCENARIO":{"ID":"' + scenenId + '"} },"TIMESTAMP" : "' + str(int(time.time())) + '","CRC_16":""}'))
+            await self.send(
+                addCRC(
+                    '{"SENDER":"012345678901", "RECEIVER":"'
+                    + self._mac
+                    + '", "CMD":"CMD_USR","ID":"2","PAYLOAD_TYPE":"CMD_EXE_SCENARIO","PAYLOAD":{"ID_LOGIN":"'
+                    + self._id
+                    + '","PIN":"'
+                    + self._pin
+                    + '","SCENARIO":{"ID":"'
+                    + scenenId
+                    + '"} },"TIMESTAMP" : "'
+                    + str(int(time.time()))
+                    + '","CRC_16":""}'
+                )
+            )
             response = await self.receive()
             return json.loads(response)
 

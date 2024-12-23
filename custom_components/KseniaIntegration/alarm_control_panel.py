@@ -1,11 +1,5 @@
-from homeassistant.components.alarm_control_panel import (
-    AlarmControlPanelEntity,
-    AlarmControlPanelEntityFeature,
-    CodeFormat,
-)
 from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
+    CoordinatorEntity,)
 from homeassistant.exceptions import ConfigValidationError, HomeAssistantError
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -22,9 +16,6 @@ from homeassistant.components.alarm_control_panel import (
     CodeFormat,
     AlarmControlPanelState,
 )
-from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
-
-
 async def async_setup_entry(hass, config, async_add_entities, discovery_info=None):
     """Configura il pannello di allarme dal config entry."""
     coordinator = hass.data[DOMAIN][config.entry_id][DATA_COORDINATOR]
@@ -75,7 +66,6 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
             ]["status"]
         else:
             self._state = AlarmControlPanelState.DISARMED
-
         return self._state
 
     @property
@@ -135,5 +125,4 @@ class SimpleAlarmControlPanel(CoordinatorEntity, AlarmControlPanelEntity):
 
     def check_code(self):
         """Check if arm code is required, raise if no code is given."""
-
         raise HomeAssistantError("   !!!     CODICE NON VALIDO     !!!")

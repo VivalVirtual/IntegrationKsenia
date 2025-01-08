@@ -48,7 +48,7 @@ class AlarmDataCoordinator(DataUpdateCoordinator):
                 elif value_stato["STA"] == "A":
                     allarme = ZONE_STATUS_ALARM
                 else:
-                    allarme = ZONE_STATUS_NOT_USED
+                    allarme = ZONE_STATUS_NORMAL
                     
                 key = value["ID"]
                 TMP_ZONE[key] = {"description": description,
@@ -67,7 +67,7 @@ class AlarmDataCoordinator(DataUpdateCoordinator):
                 elif value_stato["STA"] == "A":
                     allarme = ZONE_STATUS_ALARM
                 else:
-                    allarme = ZONE_STATUS_NOT_USED
+                    allarme = ZONE_STATUS_NORMAL
                 key = value_stato["ID"]
                 self.TMP_ZONE[key] = {"description": description,
                                       "status": status, "allarme": allarme}

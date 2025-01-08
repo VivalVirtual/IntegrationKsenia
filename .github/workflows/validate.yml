@@ -43,7 +43,7 @@ jobs:
           mkdir ./test_configuration
           cp -r ./custom_components ./test_configuration
           echo "default_config:" >> ./test_configuration/configuration.yaml
-          echo "xiaomi_miot:" >> ./test_configuration/configuration.yaml
+          echo "KseniaIntegration:" >> ./test_configuration/configuration.yaml
           echo "  language: zh" >> ./test_configuration/configuration.yaml
           echo "  device_customizes:" >> ./test_configuration/configuration.yaml
           echo "    brand.device.model:" >> ./test_configuration/configuration.yaml

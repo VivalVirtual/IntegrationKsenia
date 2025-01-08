@@ -7,7 +7,7 @@
     "config_flow": true,
     "dependencies": [],
     "homekit": {},
-    "documentation": "https://github.com/johnnybegood/ha-ksenia-lares",
+    "documentation": "",
     "iot_class": "local_polling",
     "ssdp": [],
     "version": "1.0.0",

@@ -35,11 +35,11 @@ class SimpleAlarmConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unknown_error"
         data_schema = vol.Schema(
             {
-                vol.Required("code", default="Insert pin User"): str,
-                vol.Required("ip", default="Insert ip address"): str,
-                vol.Required("port", default="Insert port"): str,
-                vol.Required("macAddr", default="Insert mac address"): str,
-                vol.Required("pinSuper", default="Insert pin super User"): str,
+                vol.Required("code"): str,
+                vol.Required("ip"): str,
+                vol.Required("port"): str,
+                vol.Required("macAddr"): str,
+                vol.Required("pinSuper"): str,
             }
         )
         return self.async_show_form(

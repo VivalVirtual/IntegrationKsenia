@@ -35,4 +35,4 @@ jobs:
       - name: Validate Home Assistant configuration
         run: |
           . venv/bin/activate
-          hass -c . --script check_config
+          hass -c ${{ github.workspace }}/custom_components/KseniaIntegration --script check_config

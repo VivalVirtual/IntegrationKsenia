@@ -1,57 +1,38 @@
-
-name: Validate
+name: Validate Home Assistant Config
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 jobs:
-  validate-hassfest:
+  validate:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.5.3
+      # Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: 🏃 Hassfest validation
-        uses: home-assistant/actions/hassfest@master
-
-  validate-hacs:
-    runs-on: ubuntu-latest
-    name: With HACS Action
-    steps:
-      - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.5.3
-
-      - name: 🏃 HACS validation
-        uses: hacs/action@main
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          category: integration
-          ignore: hacs
+          python-version: '3.11'
 
-  validate-homeassistant:
-    name: With Home Assistant
-    strategy:
-      matrix:
-        channel: [stable, dev, "2023.1.0"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.5.3
-
-      - name: 🛠️ Home Assistant configuration
+      # Install Home Assistant Core
+      - name: Install Home Assistant
         run: |
-          mkdir ./test_configuration
-          cp -r ./custom_components ./test_configuration
-          echo "default_config:" >> ./test_configuration/configuration.yaml
-          echo "ksenia_lares:" >> ./test_configuration/configuration.yaml
-          echo "  language: zh" >> ./test_configuration/configuration.yaml
-          echo "  device_customizes:" >> ./test_configuration/configuration.yaml
-          echo "    brand.device.model:" >> ./test_configuration/configuration.yaml
-          echo "      miot_local: true" >> ./test_configuration/configuration.yaml
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install wheel
+          pip install homeassistant
 
-      - name: 🏡 Home Assistant validation
-        id: homeassistant
-        uses: ludeeus/setup-homeassistant@main
-        with:
-          tag: ${{ matrix.channel }}
-          config-dir: test_configuration
+      # Validate configuration
+      - name: Validate Home Assistant configuration
+        run: |
+          . venv/bin/activate
+          hass -c . --script check_config

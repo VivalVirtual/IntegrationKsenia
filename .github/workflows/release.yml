@@ -12,7 +12,7 @@ jobs:
 
       - name: ZIP Component Dir
         run: |
-          cd ${{ github.workspace }}/custom_components/ksenia_lares
+          cd ${{ github.workspace }}/custom_components/KseniaIntegration
           zip -r ${{ github.workspace }}/KseniaIntegration.zip ./
 
       - name: Upload zip to release
